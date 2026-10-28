@@ -71,10 +71,16 @@ function adminView(industry, site) {
     rows, alerts, reports: reps.map(r => ({ ...pub(r), who: r.anon ? 'Anonymous' : W.find(w => w.id === r.by).name })).reverse() };
 }
 
-http.createServer(async (req, res) => {
+const handle = async (req, res) => {
   const u = new URL(req.url, 'http://x'), p = u.pathname, q = u.searchParams;
   const send = (c, o) => { res.writeHead(c, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(o)); };
-  const body = () => new Promise((ok, no) => { let b = ''; req.on('data', c => { b += c; if (b.length > 1e4) { no(new Error('Request too large')); req.destroy(); } }); req.on('end', () => { try { ok(JSON.parse(b || '{}')); } catch (e) { no(new Error('Invalid JSON')); } }); });
+  const body = () => {
+    if (req.body !== undefined) {
+      if (req.body && typeof req.body === 'object') return Promise.resolve(req.body);
+      try { return Promise.resolve(JSON.parse(req.body || '{}')); } catch (e) { return Promise.reject(new Error('Invalid JSON')); }
+    }
+    return new Promise((ok, no) => { let b = ''; req.on('data', c => { b += c; if (b.length > 1e4) { no(new Error('Request too large')); req.destroy(); } }); req.on('end', () => { try { ok(JSON.parse(b || '{}')); } catch (e) { no(new Error('Invalid JSON')); } }); });
+  };
   try {
     if (p === '/healthz') return send(200, { ok: true });
     // Optional greeting video: drop public/intro.mp4 (or .webm) in and the intro plays it; otherwise the built-in animation runs.
@@ -98,4 +104,10 @@ http.createServer(async (req, res) => {
     }
     send(404, { error: 'Not found' });
   } catch (e) { send(400, { error: e.message }); }
-}).listen(PORT, () => console.log('FairShift on :' + PORT));
+};
+
+if (require.main === module) {
+  http.createServer(handle).listen(PORT, () => console.log('FairShift on :' + PORT));
+} else {
+  module.exports = handle;
+}

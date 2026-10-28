@@ -1,0 +1,9 @@
+{
+  "name": "fairshift",
+  "version": "0.1.0",
+  "description": "Hackathon prototype: workforce fairness for construction and college support staff",
+  "private": true,
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

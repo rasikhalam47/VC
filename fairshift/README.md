@@ -56,6 +56,11 @@ gcloud run deploy fairshift --source . --region asia-south1 \
 The command prints the live `https://fairshift-...run.app` URL. `--max-instances 1` keeps the in-memory demo state consistent
 for all visitors; state resets whenever the instance restarts or you redeploy.
 
+## Deploy on Vercel
+Import the repository and set the project root directory to `fairshift`, or run `vercel --prod` from this folder.
+Vercel serves `public/` as the website and sends `/api/*` requests to the Node function in `api/[...path].mjs`.
+This is a demo: report changes are kept in memory and may reset between function invocations or deployments.
+
 ## Limitations (honest list)
 - No authentication or authorization: anyone with the URL can use the Admin view and change statuses. Do not put real data in it.
 - No database: reports disappear on restart. Anonymous report numbers are sequential and kept in the browser's localStorage so the worker can track them.
